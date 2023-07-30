@@ -11,6 +11,6 @@ module.exports = (app) => {
     next();
   });
   router.post("/post",product.create);
-  // router.get("/getall", product.findAll);  
+  router.get("/getall", product.findAll);  
   app.use("/api", router);
 };

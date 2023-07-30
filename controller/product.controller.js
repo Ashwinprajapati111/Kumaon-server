@@ -4,8 +4,8 @@ const Product = db.product;
 
 exports.create = (req, res) => {
   // Validate request
-  if (!req.body.title) {
-    res.status(400).send({ message: "asdfasdfContent can not be empty!" });
+  if (!req.body.fname) {
+    res.status(400).send({ message: "Content can not be empty!" });
     return;
   }
 
@@ -54,14 +54,14 @@ exports.create = (req, res) => {
 //     });
 // };
 
-// exports.findAll = (req, res) => {
-//   Product.find()
-//     .then((data) => {
-//       res.send(data);
-//     })
-//     .catch((err) => {
-//       res.status(500).send({
-//         message: err.message || "some error occured while retriving product",
-//       });
-//     });
-// };
+exports.findAll = (req, res) => {
+  Product.find()
+    .then((data) => {
+      res.send(data);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: err.message || "some error occured while retriving product",
+      });
+    });
+};

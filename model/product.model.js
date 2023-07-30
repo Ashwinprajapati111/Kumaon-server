@@ -11,7 +11,8 @@ const Product = mongoose.model(
       dep: String,
       email: String,
       password: String,
-      published: Boolean,
+
+      
 
     roles: [
       {
@@ -20,7 +21,8 @@ const Product = mongoose.model(
       },
     ],
    
-  })
+  },
+  { timestamps: true})
 );
 
 module.exports = Product;
