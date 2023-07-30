@@ -11,6 +11,7 @@ db.mongoose = mongoose;
 db.url = dbconfig.url;
 db.user = require("./user.model");
 db.role = require("./role.model");
+db.product = require("./product.model");
 
 db.ROLES = ["user", "admin", "moderator"];
 
