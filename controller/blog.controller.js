@@ -1,5 +1,7 @@
 const db = require("../model");
 const Blog = db.blog;
+const path = require("path");
+const fs = require("fs");
 
 exports.create = async (req, res) => {
   try {
@@ -48,6 +50,7 @@ exports.create = async (req, res) => {
     });
   }
 };
+
 exports.delete = (req, res) => {
   const id = req.params.id;
 
@@ -104,4 +107,91 @@ exports.findOne = (req, res) => {
       });
 
     });
+};
+
+exports.update = async (req, res) => {
+  try {
+
+    const { title, subtitle, matter, removeImage } = req.body;
+    const blogId = req.params.id;
+
+    const blog = await Blog.findById(blogId);
+
+    if (!blog) {
+      return res.status(404).json({
+        message: "Blog not found"
+      });
+    }
+
+    // update title
+    if (title) {
+      blog.title = title;
+    }
+
+    // update subtitle array
+    if (subtitle) {
+      blog.subtitle = JSON.parse(subtitle);
+    }
+
+    // update matter
+    if (matter) {
+      blog.matter = matter;
+    }
+
+    // remove image
+    if (removeImage === "true") {
+
+      if (blog.blogimage) {
+
+        const imagePath = path.join(
+          __dirname,
+          "../file/files/",
+          blog.blogimage
+        );
+
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+        }
+
+        blog.blogimage = null;
+      }
+    }
+
+    // upload new image
+    if (req.file) {
+
+      // delete old image first
+      if (blog.blogimage) {
+
+        const oldImagePath = path.join(
+          __dirname,
+          "../file/files/",
+          blog.blogimage
+        );
+
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
+        }
+      }
+
+      blog.blogimage = req.file.filename;
+    }
+
+    await blog.save();
+
+    res.status(200).json({
+      message: "Blog updated successfully",
+      data: blog
+    });
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+      message: "Error updating blog",
+      error: error.message
+    });
+
+  }
 };

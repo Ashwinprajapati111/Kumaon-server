@@ -1,7 +1,7 @@
 module.exports = (app) => {
   const contact = require("../controller/contact.controller.js");
   var router = require("express").Router();
-  const authJwt = require("../middleware/authJwt.js")
+  const authJwt = require("../middleware/authMiddleware.js")
 
   app.use(function (req, res, next) {
     res.header(

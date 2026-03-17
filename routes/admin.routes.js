@@ -1,17 +1,23 @@
-module.exports = (app) => {
-  const admins = require("../controller/admin.controller.js");
-  var router = require("express").Router();
-  const authJwt = require("../middleware/authJwt.js")
+const express = require("express");
+const router = express.Router();
 
-  app.use(function (req, res, next) {
-    res.header(
-      "Access-Control-Allow-Headers",
-      "x-access-token, Origin, Content-Type, Accept"
-    );
-    next();
-  });
-  router.post("/post",admins.create);
-  router.get("/getall", admins.findAll);  
-  router.delete("/delete/:id", admins.delete);  
-  app.use("/admin_api", router);
-};
+const authController = require("../controller/admin.controller.js");
+const authMiddleware = require("../middleware/authMiddleware.js");
+
+router.post("/register", authController.register);
+
+router.post("/login", authController.login);
+
+router.post("/logout", authController.logout);
+
+// Protected route example
+router.get("/profile", authMiddleware, (req, res) => {
+
+    res.json({
+        message: "Welcome to protected profile",
+        user: req.user
+    });
+
+});
+
+module.exports = router;

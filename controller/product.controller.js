@@ -11,7 +11,7 @@ exports.create = async (req, res) => {
     }
 
     let productimage = "";
-    let productimages = [] ;
+    let productimages = [];
     let productbgimage = "";
 
     // Check uploaded file
@@ -67,28 +67,39 @@ exports.create = async (req, res) => {
   }
 
 };
-// exports.delete = (req, res) => {
-//   const id = req.params.id;
 
-//   Product.findByIdAndRemove(id)
-//     .then(data => {
-//       if (!data) {
-//         res.status(404).send({
-//           message: `Cannot delete State with id=${id}. Maybe State was not found!`
-//         });
-//       } else {
-//         res.send({
-//           message: "State was deleted successfully!"
-//         });
-//       }
-//     })
-//     .catch(err => {
-//       res.status(500).send({
-//         message: "Could not delete State with id=" + id
-//       });
-//     });
-// };
+// DELETE PRODUCT
+exports.deleteProduct = async (req, res) => {
 
+  try {
+
+    const id = req.params.id;
+
+    const product = await Product.findByIdAndDelete(id);
+
+    if (!product) {
+
+      return res.status(404).json({
+        message: "Product not found"
+      });
+
+    }
+
+    res.json({
+      message: "Product deleted successfully"
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: error.message
+    });
+
+  }
+
+};
+
+// update product
 exports.findAll = (req, res) => {
   Product.find()
     .then((data) => {
@@ -120,4 +131,91 @@ exports.findOne = (req, res) => {
     });
 };
 
+exports.updateProduct = async (req, res) => {
 
+  try {
+
+    const id = req.params.id;
+
+    const product = await Product.findById(id);
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    let productimage = product.productimage;
+    let productbgimage = product.productbgimage;
+    let productimages = product.productimages || [];
+
+    // DELETE MAIN IMAGE
+    if (req.body.removeProductImage === "true") {
+      productimage = "";
+    }
+
+    // DELETE BG IMAGE
+    if (req.body.removeBgImage === "true") {
+      productbgimage = "";
+    }
+
+    // DELETE MULTIPLE IMAGES
+    if (req.body.removedImages) {
+
+      const removedImages = JSON.parse(req.body.removedImages);
+
+      productimages = productimages.filter(
+        (img) => !removedImages.some((url) => url.includes(img))
+      );
+    }
+
+    // UPLOAD NEW MAIN IMAGE
+    if (req.files?.productimage) {
+      productimage = req.files.productimage[0].filename;
+    }
+
+    // UPLOAD NEW BG IMAGE
+    if (req.files?.productbgimage) {
+      productbgimage = req.files.productbgimage[0].filename;
+    }
+
+    // ADD NEW MULTIPLE IMAGES
+    if (req.files?.productimages) {
+
+      const newImages = req.files.productimages.map(
+        (file) => file.filename
+      );
+
+      productimages = [...productimages, ...newImages];
+    }
+
+    let why = req.body.why ? JSON.parse(req.body.why) : product.why;
+    let faq = req.body.faq ? JSON.parse(req.body.faq) : product.faq;
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      {
+        ...req.body,
+        productimage,
+        productbgimage,
+        productimages,
+        why,
+        faq
+      },
+      { new: true }
+    );
+
+    res.json({
+      message: "Product updated successfully",
+      product: updatedProduct
+    });
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      message: error.message
+    });
+
+  }
+
+};

@@ -1,7 +1,7 @@
 module.exports = (app) => {
   const order = require("../controller/order.controller.js");
   var router = require("express").Router();
-  const authJwt = require("../middleware/authJwt.js")
+  const authJwt = require("../middleware/authMiddleware.js")
 
   app.use(function (req, res, next) {
     res.header(
@@ -12,6 +12,6 @@ module.exports = (app) => {
   });
   router.post("/post",order.createOrder);
   router.get("/getall", order.getOrders);  
-  router.delete("/delete/:id", order.getOrderById);  
+  router.delete("/delete/:id", order.deleteOrder);  
   app.use("/order", router);
 };

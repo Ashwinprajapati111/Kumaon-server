@@ -1,7 +1,7 @@
 module.exports = (app) => {
   const slider = require("../controller/slider.controller.js");
   var router = require("express").Router();
-  const authJwt = require("../middleware/authJwt.js")
+  const authJwt = require("../middleware/authMiddleware.js")
   const multer  = require('multer')
   const upload = require("../middleware/upload");
 

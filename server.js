@@ -1,12 +1,13 @@
 const express = require("express")
 const cors = require("cors")
 const app = express();
+const paymentRoutes = require("./routes/paymentRoutes.js");
 
 var corsOptions = {
   origin: "http://localhost:3000"
 }
 global.__basedir = __dirname;
-
+const authRoutes = require("./routes/authRoutes");
 app.use(cors(corsOptions));
 const db = require("./model");
 db.mongoose
@@ -26,11 +27,15 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 require("./routes/file.routes.js")(app)
 require("./routes/product.routes.js")(app)
-require("./routes/admin.routes.js")(app)
+// require("./routes/admin.routes.js")(app)
 require("./routes/contact.routes.js")(app)
+// require("./routes/authRoutes.js")(app)
 require("./routes/order.routes.js")(app)
 require("./routes/blog.routes.js")(app)
 require("./routes/slider.routes.js")(app)
+// Routes
+app.use("/auth", authRoutes);
+app.use("/api/payment", paymentRoutes);
 
 const PORT = 8080;
 app.listen(PORT, () => {

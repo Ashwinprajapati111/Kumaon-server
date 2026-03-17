@@ -1,63 +1,46 @@
-const db = require("../model");
-const Admin = db.admin;
+const User = require("../models/User");
+const bcrypt = require("bcrypt");
 
+// REGISTER
+exports.register = async (req, res) => {
+  try {
 
-exports.create = (req, res) => {
-  // Validate request
-  if (!req.body.name) {
-    res.status(400).send({ message: "Content can not be empty!" });
-    return;
+    const { name, email, password, role } = req.body;
+
+    // check existing user
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res.status(400).json({
+        message: "User already exists"
+      });
+    }
+
+    // hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // create user
+    const user = new User({
+      name,
+      email,
+      password: hashedPassword,
+      role
+    });
+
+    await user.save();
+
+    res.status(201).json({
+      message: "User registered successfully"
+    });
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+      message: "Server error",
+      error: error.message
+    });
+
   }
-
-  // Create a Tutorial
-  const admin = new Admin({
-    name: req.body.name,
-    email: req.body.email,
-    mobile: req.body.mobile,
-    password: req.body.password
-  });
-  admin
-    .save(admin)
-    .then((data) => {
-      res.send(data);
-    })
-    .catch((err) => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while creating the signup.",
-      });
-    });
-};
-exports.delete = (req, res) => {
-  const id = req.params.id;
-
-  Admin.findByIdAndRemove(id)
-    .then(data => {
-      if (!data) {
-        res.status(404).send({
-          message: `Cannot delete State with id=${id}. Maybe State was not found!`
-        });
-      } else {
-        res.send({
-          message: "State was deleted successfully!"
-        });
-      }
-    })
-    .catch(err => {
-      res.status(500).send({
-        message: "Could not delete State with id=" + id
-      });
-    });
-};
-
-exports.findAll = (req, res) => {
-  Admin.find()
-    .then((data) => {
-      res.send(data);
-    })
-    .catch((err) => {
-      res.status(500).send({
-        message: err.message || "some error occured while retriving product",
-      });
-    });
 };
