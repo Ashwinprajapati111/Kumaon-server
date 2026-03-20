@@ -17,6 +17,7 @@ const Product = mongoose.model(
       Why_main_title: String,
       Why_main_desc: String,
       Disclaimer: String,
+      wt: String,
       why: [
         {
           why_question: String,

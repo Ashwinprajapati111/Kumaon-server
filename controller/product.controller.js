@@ -48,6 +48,7 @@ exports.create = async (req, res) => {
       Why_main_title: req.body.Why_main_title,
       Why_main_desc: req.body.Why_main_desc,
       Disclaimer: req.body.Disclaimer,
+      wt: req.body.wt,
       why: why,
       faq: faq
     });
@@ -132,9 +133,7 @@ exports.findOne = (req, res) => {
 };
 
 exports.updateProduct = async (req, res) => {
-
   try {
-
     const id = req.params.id;
 
     const product = await Product.findById(id);
@@ -159,7 +158,6 @@ exports.updateProduct = async (req, res) => {
 
     // DELETE MULTIPLE IMAGES
     if (req.body.removedImages) {
-
       const removedImages = JSON.parse(req.body.removedImages);
 
       productimages = productimages.filter(
@@ -179,7 +177,6 @@ exports.updateProduct = async (req, res) => {
 
     // ADD NEW MULTIPLE IMAGES
     if (req.files?.productimages) {
-
       const newImages = req.files.productimages.map(
         (file) => file.filename
       );
@@ -187,13 +184,28 @@ exports.updateProduct = async (req, res) => {
       productimages = [...productimages, ...newImages];
     }
 
+    // ✅ PARSE ARRAYS
     let why = req.body.why ? JSON.parse(req.body.why) : product.why;
     let faq = req.body.faq ? JSON.parse(req.body.faq) : product.faq;
 
+    // ✅ IMPORTANT FIX FOR WT
+    const wtValue = req.body.wt !== undefined ? req.body.wt : product.wt;
+
+    // ✅ UPDATE MANUALLY
     const updatedProduct = await Product.findByIdAndUpdate(
       id,
       {
-        ...req.body,
+        name: req.body.name,
+        desc: req.body.desc,
+        price: req.body.price,
+        wt: wtValue, // ✅ FIXED
+        Properties: req.body.Properties,
+        Ingredients: req.body.Ingredients,
+        Single_Origin: req.body.Single_Origin,
+        Taste_Notes: req.body.Taste_Notes,
+        Why_main_title: req.body.Why_main_title,
+        Why_main_desc: req.body.Why_main_desc,
+        Disclaimer: req.body.Disclaimer,
         productimage,
         productbgimage,
         productimages,
@@ -209,13 +221,10 @@ exports.updateProduct = async (req, res) => {
     });
 
   } catch (error) {
-
     console.error(error);
 
     res.status(500).json({
       message: error.message
     });
-
   }
-
 };
