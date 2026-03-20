@@ -36,6 +36,7 @@ require("./routes/contact.routes.js")(app);
 require("./routes/order.routes.js")(app);
 require("./routes/blog.routes.js")(app);
 require("./routes/slider.routes.js")(app);
+require("./routes/admin.routes.js")(app);
 
 app.use("/auth", authRoutes);
 app.use("/api/payment", paymentRoutes);

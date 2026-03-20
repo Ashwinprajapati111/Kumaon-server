@@ -1,23 +1,25 @@
-const express = require("express");
-const router = express.Router();
+module.exports = (app) => {
 
-const authController = require("../controller/admin.controller.js");
-const authMiddleware = require("../middleware/authMiddleware.js");
+  const admin = require("../controller/admin.controller.js");
+  const router = require("express").Router();
 
-router.post("/register", authController.register);
+  // CREATE
+  router.post("/post", admin.create);
 
-router.post("/login", authController.login);
+  // GET ALL
+  router.get("/getall", admin.findAll);
 
-router.post("/logout", authController.logout);
+  // GET ONE
+  router.get("/getone/:id", admin.findOne);
 
-// Protected route example
-router.get("/profile", authMiddleware, (req, res) => {
+  // UPDATE
+  router.put("/update/:id", admin.update);
 
-    res.json({
-        message: "Welcome to protected profile",
-        user: req.user
-    });
+  // DELETE
+  router.delete("/delete/:id", admin.delete);
 
-});
+  // LOGIN ✅ (FIXED)
+  router.post("/login", admin.loginAdmin);
 
-module.exports = router;
+  app.use("/admin_api", router);
+};

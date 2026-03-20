@@ -88,3 +88,41 @@ exports.findOne = (req, res) => {
 
     });
 };
+
+exports.update = async (req, res) => {
+  try {
+    console.log("BODY:", req.body);
+    console.log("FILES:", req.files); // 👈 ADD THIS
+
+    const id = req.params.id;
+
+    let updateData = {};
+
+    if (req.files && req.files.sliderimage) {
+      updateData.sliderimage = req.files.sliderimage[0].filename;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).send({
+        success: false,
+        message: "No image uploaded"
+      });
+    }
+
+    const updated = await Slider.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
+
+    res.send({
+      success: true,
+      data: updated
+    });
+
+  } catch (err) {
+    console.log("UPDATE ERROR:", err);
+    res.status(500).send({
+      success: false,
+      message: err.message,
+    });
+  }
+};

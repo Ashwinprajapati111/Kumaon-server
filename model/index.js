@@ -17,6 +17,7 @@ db.contact = require("./contact.model.js");
 db.blog = require("./blog.model");
 db.slider = require("./slider.model");
 db.gallery = require("./gallery.model");
+db.admin = require("./admin.model.js")
 db.ROLES = ["user", "admin", "moderator"];
 
 module.exports = db;
