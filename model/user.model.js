@@ -1,19 +1,38 @@
 const mongoose = require("mongoose");
 
-const User = mongoose.model(
-  "User",
-  new mongoose.Schema({
-    username: String,
-    lname: String,
-    email: String,
-    password: String,
-    roles: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Role"
-      }
-    ]
-  })
-);
+const addressSchema = new mongoose.Schema({
+  firstName: String,
+  lastName: String,
+  phone: String,
+  address: String,
+  city: String,
+  state: String,
+  country: String,
+  pincode: String,
+  type: String,
+  isDefault: {
+    type: Boolean,
+    default: false,
+  },
+}, { _id: true });
 
-module.exports = User;
+const userSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  mobile: String,
+  password: String,
+
+  // ❌ REMOVE old single address fields
+  // address, city, state, country, pincode, type
+
+  // ✅ ADD THIS
+  addresses: [addressSchema],
+
+  role: {
+    type: String,
+    enum: ["user", "admin"],
+    default: "user",
+  },
+}, { timestamps: true });
+
+module.exports = mongoose.model("User", userSchema);

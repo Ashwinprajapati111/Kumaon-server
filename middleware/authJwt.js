@@ -1,87 +1,40 @@
+// middleware/authJWT.js
 const jwt = require("jsonwebtoken");
-const config = require("../config/auth.config.js");
-const db = require("../model");
-const User = db.user;
-const Role = db.role;
+const mongoose = require("mongoose");
 
-verifyToken = (req, res, next) => {
-    let token = req.headers["x-access-token"];
-  
-    if (!token) {
-      return res.status(403).send({ message: "No token provided!" });
-    }
-  
-    jwt.verify(token, config.secret, (err, decoded) => {
-      if (err) {
-        return res.status(401).send({ message: "Unauthorized!" });
-      }
-      req.userId = decoded.id;
-      next();
-    });
-  };
+const verifyToken = (req, res, next) => {
+  try {
+    let token = req.headers.authorization;
 
-  
-isAdmin = (req, res, next) => {
-    User.findById(req.userId).exec((err, user) => {
-      if (err) {
-        res.status(500).send({ message: err });
-        return;
-      }
-  
-      Role.find(
-        {
-          _id: { $in: user.roles }
-        },
-        (err, roles) => {
-          if (err) {
-            res.status(500).send({ message: err });
-            return;
-          }
-  
-          for (let i = 0; i < roles.length; i++) {
-            if (roles[i].name === "admin") {
-              next();
-              return;
-            }
-          }
-  
-          res.status(403).send({ message: "Require Admin Role!" });
-          return;
-        }
-      );
-    });
-  };
-  
-  isModerator = (req, res, next) => {
-    User.findById(req.userId).exec().then(( user) => {
-     
-  
-      Role.find(
-        {
-          _id: { $in: user.roles }
-        }).then
-        (( roles) => {
-          
+    if (!token) return res.status(401).json({ message: "No token" });
 
-          console.log(roles);
-  
-          for (let i = 0; i < roles.length; i++) {
-            if (roles[i].name === "moderator") {
-              next();
-              return;
-            }
-          }
-  
-          res.status(403).send({ message: "Require Moderator Role!" });
-          return;
-        }
-      );
-    });
-  };
+    if (token.startsWith("Bearer ")) token = token.slice(7);
 
-  const authJwt = {
-    verifyToken,
-    isAdmin,
-    isModerator
-  };
-  module.exports = authJwt;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "secret123");
+
+    req.user = decoded;
+    req.userId = decoded.id;
+    req.role = decoded.role;
+
+    console.log("✅ Token decoded:", decoded);
+
+    next();
+  } catch (err) {
+    console.log("❌ JWT ERROR:", err.message);
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+};
+
+const isAdmin = (req, res, next) => {
+  if (req.role !== "admin") return res.status(403).json({ message: "Admin only" });
+  next();
+};
+
+const isUser = (req, res, next) => {
+  if (req.role === "admin") return next();
+  if (!req.params.id) return next();
+  if (mongoose.Types.ObjectId.isValid(req.params.id) && req.params.id === req.userId) return next();
+  return res.status(403).json({ message: "Access denied" });
+};
+
+module.exports = { verifyToken, isAdmin, isUser };

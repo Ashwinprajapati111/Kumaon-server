@@ -2,13 +2,21 @@ const mongoose = require("mongoose");
 
 const OrderSchema = new mongoose.Schema(
   {
+
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
     customer: {
       email: String,
       firstName: String,
       lastName: String,
       address: String,
       city: String,
-      phone: String
+      state: String,      // ✅ ADD
+      country: String,    // ✅ ADD
+      pincode: String,
+      phone: String,
     },
 
     cart: [
@@ -17,23 +25,27 @@ const OrderSchema = new mongoose.Schema(
         name: String,
         price: Number,
         quantity: Number,
-        image: String
-      }
+        image: String,
+      },
     ],
 
+    // ✅ Razorpay Payment Info
     payment: {
       method: {
         type: String,
         enum: ["COD", "UPI", "Card", "NetBanking"],
-        default: "COD"
+        default: "UPI",
       },
       paymentStatus: {
         type: String,
         enum: ["Pending", "Paid", "Failed"],
-        default: "Pending"
-      }
+        default: "Pending",
+      },
+      paymentId: String,          // ✅ razorpay_payment_id
+      razorpayOrderId: String,    // ✅ razorpay_order_id
     },
 
+    // ✅ Order Tracking
     orderStatus: {
       type: String,
       enum: [
@@ -42,25 +54,18 @@ const OrderSchema = new mongoose.Schema(
         "Shipped",
         "Out for Delivery",
         "Delivered",
-        "Cancelled"
+        "Cancelled",
       ],
-      default: "Pending"
+      default: "Pending",
     },
 
-    totalAmount: {
-      type: Number,
-      required: false
-    },
     subtotal: Number,
     shipping: Number,
     tax: Number,
     total: Number,
-    createdAt: {
-      type: Date,
-      default: Date.now
-    }
+
   },
-  { timestamps: false }
+  { timestamps: true } // ✅ auto createdAt & updatedAt
 );
 
 module.exports = mongoose.model("Order", OrderSchema);

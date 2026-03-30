@@ -1,17 +1,14 @@
-module.exports = (app) => {
-  const contact = require("../controller/contact.controller.js");
-  var router = require("express").Router();
-  const authJwt = require("../middleware/authMiddleware.js")
+const router = require("express").Router();
+const contact = require("../controller/contact.controller");
+const { verifyToken, isAdmin } = require("../middleware/authJwt");
 
-  app.use(function (req, res, next) {
-    res.header(
-      "Access-Control-Allow-Headers",
-      "x-access-token, Origin, Content-Type, Accept"
-    );
-    next();
-  });
-  router.post("/post",contact.create);
-  router.get("/getall", contact.findAll);  
-  router.delete("/delete/:id", contact.delete);  
-  app.use("/contact", router);
-};
+// ✅ PUBLIC (submit contact)
+router.post("/post", contact.create);
+
+// ✅ ADMIN ONLY (view all contacts)
+router.get("/getall", verifyToken, isAdmin, contact.findAll);
+
+// ✅ ADMIN ONLY (delete contact)
+router.delete("/delete/:id", verifyToken, isAdmin, contact.delete);
+
+module.exports = router;
