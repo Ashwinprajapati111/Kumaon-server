@@ -31,9 +31,14 @@ app.use("/file", require("./routes/file.routes"));
 
 // Auth & Users
 app.use("/auth", require("./routes/auth.routes"));
+
 app.use("/user", require("./routes/user.routes"));
 app.use("/admin", require("./routes/admin.routes"));
 
+
+// ================= unused =================
+const unusedRoutes = require("./routes/unused.routes");
+app.use("/unused", unusedRoutes);
 
 // Slider (✅ FIXED)
 app.use("/slider", require("./routes/slider.routes.js"));
