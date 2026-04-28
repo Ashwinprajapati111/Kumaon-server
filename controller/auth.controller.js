@@ -29,7 +29,7 @@ exports.register = async (req, res) => {
       email,
       mobile,
       password: hash,
-      role: role || "user", // ✅ now works
+      role: role || "user",
     });
 
     res.json({ message: "Registered successfully" });
@@ -39,7 +39,6 @@ exports.register = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 // ================= LOGIN =================
 exports.login = async (req, res) => {
@@ -86,43 +85,89 @@ exports.login = async (req, res) => {
 };
 
 // ================= SEND OTP =================
+// ================= SEND OTP =================
 exports.sendOTP = async (req, res) => {
   try {
-    const { email, mobile } = req.body;
+    let { email } = req.body;
 
-    if (!email && !mobile) {
-      return res.status(400).json({ message: "Email or mobile required" });
+    if (!email) {
+      return res.status(400).json({ message: "Email required" });
     }
 
-    const key = email || mobile;
-    const otp = Math.floor(100000 + Math.random() * 900000);
+    email = email.toString().trim().toLowerCase();
 
-    // store OTP
-    otpStore[key] = {
+    // ✅ Check user exists
+    const user = await User.findOne({
+      email: { $regex: new RegExp(`^${email}$`, "i") }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Email not registered" });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    otpStore[email] = {
       otp,
-      expires: Date.now() + 5 * 60 * 1000, // 5 min
+      expires: Date.now() + 5 * 60 * 1000,
     };
 
-    // send SMS
-    if (mobile) {
-      await sendSMS(mobile, otp);
-    }
+    await sendEmail(email, otp);
 
-    // send Email
-    if (email) {
-      await sendEmail(email, otp);
-    }
+    console.log("OTP STORED:", email, otp);
 
     res.json({ message: "OTP sent successfully" });
 
   } catch (err) {
-    console.error("OTP Error:", err);
+    console.error(err);
     res.status(500).json({ message: "Failed to send OTP" });
   }
 };
 
-// ================= VERIFY OTP + RESET PASSWORD =================
-exports.verifyOTPAndReset = async (req, res) => {
+// ================= VERIFY OTP (ONLY - FOR CHECKOUT) =================
+exports.verifyOTP = async (req, res) => {
+  try {
+    let { email, otp } = req.body;
+
+    console.log("BODY:", req.body); // 🔥 DEBUG
+
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Missing data" });
+    }
+
+    email = email.toString().trim().toLowerCase();
+    otp = otp.toString().trim();
+
+    const record = otpStore[email];
+
+    if (!record) {
+      return res.status(400).json({ message: "OTP not found" });
+    }
+
+    if (record.expires < Date.now()) {
+      delete otpStore[email];
+      return res.status(400).json({ message: "OTP expired" });
+    }
+
+    if (record.otp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    delete otpStore[email];
+
+    return res.json({
+      success: true,
+      message: "Email verified successfully",
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Verification failed" });
+  }
+};
+
+// ================= RESET PASSWORD =================
+exports.resetPassword = async (req, res) => {
   try {
     const { email, mobile, otp, newPassword } = req.body;
 
@@ -130,20 +175,20 @@ exports.verifyOTPAndReset = async (req, res) => {
       return res.status(400).json({ message: "Missing data" });
     }
 
-    const key = email || mobile;
+    // ✅ FIX: normalize key
+    const key = (email || mobile).toString().trim().toLowerCase();
+
     const record = otpStore[key];
 
     if (!record) {
       return res.status(400).json({ message: "OTP not found" });
     }
 
-    // check expiry
     if (record.expires < Date.now()) {
       delete otpStore[key];
       return res.status(400).json({ message: "OTP expired" });
     }
 
-    // check OTP
     if (record.otp != otp) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
@@ -161,13 +206,15 @@ exports.verifyOTPAndReset = async (req, res) => {
     user.password = hash;
     await user.save();
 
-    // remove OTP after success
     delete otpStore[key];
 
-    res.json({ message: "Password reset successfully" });
+    res.json({
+      success: true,
+      message: "Password reset successfully",
+    });
 
   } catch (err) {
-    console.error(err);
+    console.error("RESET ERROR:", err);
     res.status(500).json({ message: "Reset failed" });
   }
 };

@@ -18,6 +18,7 @@ db.blog = require("./blog.model");
 db.slider = require("./slider.model");
 db.gallery = require("./gallery.model");
 db.insta = require("./insta.model");
+db.price = require("./price.model");
 db.ROLES = ["user", "admin", "moderator"];
 
 module.exports = db;

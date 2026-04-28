@@ -56,6 +56,7 @@ app.use("/api/payment", require("./routes/paymentRoutes"));
 app.use("/api/gallery", require("./routes/gallery.routes"));
 
 const instaRoutes = require("./routes/insta.routes");
+app.use("/api/price", require("./routes/price.routes"));
 
 app.use("/api/insta", instaRoutes);
 
